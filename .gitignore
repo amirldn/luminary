@@ -1,3 +1,5 @@
 creds.json
 .vscode/
 .cache
+cover_art/*
+.DS_Store
