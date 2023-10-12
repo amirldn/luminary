@@ -106,6 +106,10 @@ def copy_file_to_rpi(filename):
 
 
 print("Starting")
+ser = serial.Serial("/dev/tty.usbmodem101", baudrate=9600, timeout=0.5)
+print("Using", ser.name)
+ser.read(100)
+
 cp = currentPlaying()
 while True:
     cp.update()
@@ -117,7 +121,9 @@ while True:
         )
         if downloaded:
             copy_file_to_rpi(cp.album_id)
+        ser.write("1 {cp.album_id};".format(cp=cp).encode())
         time.sleep(1)
     else:
         print("Nothing Playing")
+        ser.write(b"0")
         time.sleep(1)
