@@ -5,28 +5,34 @@ import json
 import requests
 import time
 import os
+import serial
 
 
+# Spotify API
 class currentPlaying:
-    def f(self):
-        self.update()
+    def __init__(self):
+        self.title = None
+        self.artist = None
+        self.cover_art = None
+        self.album_id = None
+
+    def __str__(self) -> str:
+        return str(self.title) + " - " + str(self.artist)
+
+    def empty(self):
+        self.title = None
+        self.artist = None
+        self.cover_art = None
+        self.album_id = None
         return self
 
     def update(self):
         currentPlaying = sp.current_user_playing_track()
-        # print(currentPlaying)
-
         if currentPlaying == None:
-            return None
-
-        # Playtime
-        timeMs = int(currentPlaying["progress_ms"])
-        self.timeSec = int((timeMs / 1000) % 60)
-        if len(str(self.timeSec)) == 1:
-            self.timeSec = "0" + str(self.timeSec)
-        self.timeMin = int((timeMs / (1000 * 60)) % 60)
+            return self.empty()
 
         # Song Info
+
         self.title = currentPlaying["item"]["name"]
         self.artist = currentPlaying["item"]["artists"][0]["name"]
         # 64x64, [0] for higher 300x300
@@ -34,6 +40,24 @@ class currentPlaying:
         self.album_id = currentPlaying["item"]["album"]["uri"].split(":")[2]
 
         return self
+
+
+# Take from creds.json file in same directory
+with open("creds.json") as f:
+    data = json.load(f)
+    client_id = data["client_id"]
+    client_secret = data["client_secret"]
+    callback_uri = data["callback_uri"]
+
+scope = "user-read-currently-playing"
+sp = spotipy.Spotify(
+    auth_manager=SpotifyOAuth(
+        scope=scope,
+        client_id=client_id,
+        client_secret=client_secret,
+        redirect_uri=callback_uri,
+    )
+)
 
 
 # Image Handling
@@ -81,43 +105,18 @@ def copy_file_to_rpi(filename):
     os.system("cp " + localBmpDir + " " + rpiBmpDir)
 
 
-# Take from creds.json file in same directory
-with open("creds.json") as f:
-    data = json.load(f)
-    client_id = data["client_id"]
-    client_secret = data["client_secret"]
-    callback_uri = data["callback_uri"]
-
-scope = "user-read-currently-playing"
-sp = spotipy.Spotify(
-    auth_manager=SpotifyOAuth(
-        scope=scope,
-        client_id=client_id,
-        client_secret=client_secret,
-        redirect_uri=callback_uri,
-    )
-)
-
-
+print("Starting")
 cp = currentPlaying()
 while True:
-    now_playing = cp.update()
-    if now_playing != None:
-        print(
-            str(now_playing.timeMin)
-            + ":"
-            + str(now_playing.timeSec)
-            + " "
-            + now_playing.title
-            + " "
-            + now_playing.artist
-        )
+    cp.update()
+    if cp != None:
+        print(cp.title + " - " + cp.artist)
         downloaded = download_cover_art_and_convert_to_32x32_bmp(
-            now_playing.cover_art,
-            now_playing.album_id,
+            cp.cover_art,
+            cp.album_id,
         )
         if downloaded:
-            copy_file_to_rpi(now_playing.album_id)
+            copy_file_to_rpi(cp.album_id)
         time.sleep(1)
     else:
         print("Nothing Playing")
