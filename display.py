@@ -48,7 +48,7 @@ def group_with_bmp(filename):
 def display_bmp(filename):
     group = group_with_bmp(filename)
     display.show(group)
-    display.refresh()
+    display.refresh(target_frames_per_second=60)
     print("Displaying " + filename)
 
 
@@ -61,4 +61,3 @@ while True:
         count = 0
     display_bmp("bmp/" + str(count) + ".bmp")
     count += 1
-    time.sleep(3)
