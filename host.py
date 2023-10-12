@@ -31,7 +31,7 @@ class currentPlaying:
         # 64x64, [0] for higher 300x300
         self.cover_art = currentPlaying["item"]["album"]["images"][2]["url"]
         self.album_id = currentPlaying["item"]["album"]["uri"].split(":")[2]
-
+        # TODO: Fix bug where if you are playing a local file with no album this errors out
         return self
 
 
@@ -112,8 +112,10 @@ while True:
             cp.album_id,
         )
         if downloaded:
+            # TODO: add a check to see if the file is already on the RPI
             copy_file_to_rpi(cp.album_id)
         ser.write("1 {cp.album_id};".format(cp=cp).encode())
+        # ser.write(b"0")
         time.sleep(1)
         # print("Serial:" + str(ser.read_all()))
     else:

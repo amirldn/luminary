@@ -66,16 +66,17 @@ bmp_path = "/bmp/"
 #     # display_bmp(bmp_path + "2nkto6YNI4rUYTLqEwWJ3o.bmp")
 
 # Create an infinte loop which will read the serial port and print the data
-usb_cdc.enable(console=True, data=True)
 while True:
     data = usb_cdc.data
-    print(str(data))
+    display_bmp(bmp_path + "2nkto6YNI4rUYTLqEwWJ3o")
+    print(data)
     if data == b"0":
         print("Nothing Playing")
     else:
         bmp_file = data.decode("utf-8").split(" ")[1].split(";")[0]
+        print(bmp_file)
         try:
             display_bmp(bmp_path + bmp_file)
         except Exception as e:
             print("Error displaying " + bmp_file + ": " + str(e))
-    time.sleep(1)
+    # time.sleep(1)
