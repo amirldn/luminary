@@ -1,13 +1,11 @@
 # SPDX-FileCopyrightText: 2020 Jeff Epler for Adafruit Industries
 # SPDX-License-Identifier: MIT
 
-import random
-import time
-
 import board
 import displayio
 import framebufferio
 import rgbmatrix
+import os
 
 displayio.release_displays()
 matrix = rgbmatrix.RGBMatrix(
@@ -27,8 +25,6 @@ display = framebufferio.FramebufferDisplay(matrix, auto_refresh=False, rotation=
 
 root = displayio.Group()
 display.root_group = root
-
-FILENAME = "bmp/1.bmp"
 
 
 # Potentially a memory leak - should release these groups or reuse them
@@ -52,12 +48,15 @@ def display_bmp(filename):
     print("Displaying " + filename)
 
 
-bmps = [0, 1, 2, 3, 4, 5, 6, 7]
-count = 5
+bmp_path = "/bmp/"
+
 
 while True:
-    print(count)
-    if count == 7:
-        count = 0
-    display_bmp("bmp/" + str(count) + ".bmp")
-    count += 1
+    bmp_files = [f for f in os.listdir(bmp_path) if f.endswith(".bmp")]
+    print(bmp_files)
+    for bmp_file in bmp_files:
+        try:
+            display_bmp(bmp_path + bmp_file)
+        except Exception as e:
+            print("Error displaying " + bmp_file + ": " + str(e))
+    # display_bmp(bmp_path + "2nkto6YNI4rUYTLqEwWJ3o.bmp")
