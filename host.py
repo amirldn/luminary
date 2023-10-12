@@ -11,25 +11,18 @@ import serial
 # Spotify API
 class currentPlaying:
     def __init__(self):
-        self.title = None
-        self.artist = None
-        self.cover_art = None
-        self.album_id = None
+        return None
 
     def __str__(self) -> str:
-        return str(self.title) + " - " + str(self.artist)
-
-    def empty(self):
-        self.title = None
-        self.artist = None
-        self.cover_art = None
-        self.album_id = None
-        return self
+        try:
+            return str(self.title) + " - " + str(self.artist)
+        except:
+            return ""
 
     def update(self):
         currentPlaying = sp.current_user_playing_track()
         if currentPlaying == None:
-            return self.empty()
+            return None
 
         # Song Info
 
@@ -108,12 +101,11 @@ def copy_file_to_rpi(filename):
 print("Starting")
 ser = serial.Serial("/dev/tty.usbmodem101", baudrate=9600, timeout=0.5)
 print("Using", ser.name)
-ser.read(100)
 
 cp = currentPlaying()
 while True:
-    cp.update()
-    if cp != None:
+    playing = cp.update()
+    if playing != None:
         print(cp.title + " - " + cp.artist)
         downloaded = download_cover_art_and_convert_to_32x32_bmp(
             cp.cover_art,
@@ -123,6 +115,7 @@ while True:
             copy_file_to_rpi(cp.album_id)
         ser.write("1 {cp.album_id};".format(cp=cp).encode())
         time.sleep(1)
+        # print("Serial:" + str(ser.read_all()))
     else:
         print("Nothing Playing")
         ser.write(b"0")

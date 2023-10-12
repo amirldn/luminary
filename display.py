@@ -6,6 +6,8 @@ import displayio
 import framebufferio
 import rgbmatrix
 import os
+import usb_cdc
+import time
 
 displayio.release_displays()
 matrix = rgbmatrix.RGBMatrix(
@@ -41,7 +43,8 @@ def group_with_bmp(filename):
     return group
 
 
-def display_bmp(filename):
+def display_bmp(bmp_id):
+    filename = bmp_id + ".bmp"
     group = group_with_bmp(filename)
     display.show(group)
     display.refresh(target_frames_per_second=1)
@@ -51,12 +54,28 @@ def display_bmp(filename):
 bmp_path = "/bmp/"
 
 
+# Iterate through all bmp files in the bmp_path directory and display them
+# while True:
+#     bmp_files = [f for f in os.listdir(bmp_path) if f.endswith(".bmp")]
+#     print(bmp_files)
+#     for bmp_file in bmp_files:
+#         try:
+#             display_bmp(bmp_path + bmp_file)
+#         except Exception as e:
+#             print("Error displaying " + bmp_file + ": " + str(e))
+#     # display_bmp(bmp_path + "2nkto6YNI4rUYTLqEwWJ3o.bmp")
+
+# Create an infinte loop which will read the serial port and print the data
+usb_cdc.enable(console=True, data=True)
 while True:
-    bmp_files = [f for f in os.listdir(bmp_path) if f.endswith(".bmp")]
-    print(bmp_files)
-    for bmp_file in bmp_files:
+    data = usb_cdc.data
+    print(str(data))
+    if data == b"0":
+        print("Nothing Playing")
+    else:
+        bmp_file = data.decode("utf-8").split(" ")[1].split(";")[0]
         try:
             display_bmp(bmp_path + bmp_file)
         except Exception as e:
             print("Error displaying " + bmp_file + ": " + str(e))
-    # display_bmp(bmp_path + "2nkto6YNI4rUYTLqEwWJ3o.bmp")
+    time.sleep(1)
