@@ -48,7 +48,7 @@ def group_with_bmp(filename):
 def display_bmp(filename):
     group = group_with_bmp(filename)
     display.show(group)
-    display.refresh(target_frames_per_second=60)
+    display.refresh(target_frames_per_second=1)
     print("Displaying " + filename)
 
 

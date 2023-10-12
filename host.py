@@ -16,8 +16,7 @@ class currentPlaying:
         currentPlaying = sp.current_user_playing_track()
         # print(currentPlaying)
 
-        if currentPlaying == "None":
-            print("Nothing Playing")
+        if currentPlaying == None:
             return None
 
         # Playtime
@@ -52,8 +51,10 @@ def download_cover_art_and_convert_to_32x32_bmp(url, filename):
         download_cover_art(url, filename)
         convert_cover_art_to_32x32_bmp(filename)
         print("Downloaded cover art: " + filename)
-    # else:
-    #     print("File already exists: " + filename)
+        return True
+    else:
+        # print("File already exists: " + filename)
+        return False
 
 
 def download_cover_art(url, filename):
@@ -69,6 +70,15 @@ def convert_cover_art_to_32x32_bmp(filename):
     img = Image.open(cover_art_path + filename + ".jpg")
     img = img.resize((32, 32))
     img.save(bmp_cover_art_path + filename + ".bmp")
+
+
+# RPI Handling
+def copy_file_to_rpi(filename):
+    # copy to /Volumes/CIRCUITPY/bmp
+    print("Copying " + filename + " to RPI")
+    localBmpDir = bmp_cover_art_path + filename + ".bmp"
+    rpiBmpDir = "/Volumes/CIRCUITPY/bmp/" + filename + ".bmp"
+    os.system("cp " + localBmpDir + " " + rpiBmpDir)
 
 
 # Take from creds.json file in same directory
@@ -93,7 +103,6 @@ cp = currentPlaying()
 while True:
     now_playing = cp.update()
     if now_playing != None:
-        # print(now_playing.cover_art)
         print(
             str(now_playing.timeMin)
             + ":"
@@ -103,10 +112,12 @@ while True:
             + " "
             + now_playing.artist
         )
-        download_cover_art_and_convert_to_32x32_bmp(
+        downloaded = download_cover_art_and_convert_to_32x32_bmp(
             now_playing.cover_art,
             now_playing.album_id,
         )
+        if downloaded:
+            copy_file_to_rpi(now_playing.album_id)
         time.sleep(1)
     else:
         print("Nothing Playing")
