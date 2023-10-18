@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2020 Jeff Epler for Adafruit Industries
 # SPDX-License-Identifier: MIT
 
+# IDEA: Have a text file on the board that gets written to with bmp id
+
 import board
 import displayio
 import framebufferio
@@ -23,15 +25,15 @@ matrix = rgbmatrix.RGBMatrix(
 
 # Associate matrix with a Display to use displayio features
 display = framebufferio.FramebufferDisplay(matrix, auto_refresh=False, rotation=0)
-
-
 root = displayio.Group()
 display.root_group = root
 
+bmp_path = "/bmp/"
+
 
 # Potentially a memory leak - should release these groups or reuse them
-def group_with_bmp(filename):
-    bmp = displayio.OnDiskBitmap(filename)
+def group_with_bmp(filepath):
+    bmp = displayio.OnDiskBitmap(filepath)
     tilegrid = displayio.TileGrid(
         bmp,
         pixel_shader=bmp.pixel_shader,
@@ -44,39 +46,37 @@ def group_with_bmp(filename):
 
 
 def display_bmp(bmp_id):
-    filename = bmp_id + ".bmp"
-    group = group_with_bmp(filename)
+    filepath = bmp_path + bmp_id + ".bmp"
+    group = group_with_bmp(filepath)
     display.show(group)
     display.refresh(target_frames_per_second=1)
-    print("Displaying " + filename)
-
-
-bmp_path = "/bmp/"
+    print("Displaying " + filepath)
 
 
 # Iterate through all bmp files in the bmp_path directory and display them
+while True:
+    print("grabbing files")
+    bmp_files = [f for f in os.listdir(bmp_path) if f.endswith(".bmp")]
+    print(bmp_files)
+    for bmp_file in bmp_files:
+        bmp_id = bmp_file.replace(".bmp", "")
+        try:
+            display_bmp(bmp_id)
+        except Exception as e:
+            print("Error displaying " + bmp_file + ": " + str(e))
+    # display_bmp("2nkto6YNI4rUYTLqEwWJ3o")
+
+# Create an infinte loop which will read the serial port and print the data
 # while True:
-#     bmp_files = [f for f in os.listdir(bmp_path) if f.endswith(".bmp")]
-#     print(bmp_files)
-#     for bmp_file in bmp_files:
+#     data = usb_cdc.data
+#     display_bmp(bmp_path + "2nkto6YNI4rUYTLqEwWJ3o")
+#     print(data)
+#     if data == b"0":
+#         print("Nothing Playing")
+#     else:
+#         bmp_file = data.decode("utf-8").split(" ")[1].split(";")[0]
+#         print(bmp_file)
 #         try:
 #             display_bmp(bmp_path + bmp_file)
 #         except Exception as e:
 #             print("Error displaying " + bmp_file + ": " + str(e))
-#     # display_bmp(bmp_path + "2nkto6YNI4rUYTLqEwWJ3o.bmp")
-
-# Create an infinte loop which will read the serial port and print the data
-while True:
-    data = usb_cdc.data
-    display_bmp(bmp_path + "2nkto6YNI4rUYTLqEwWJ3o")
-    print(data)
-    if data == b"0":
-        print("Nothing Playing")
-    else:
-        bmp_file = data.decode("utf-8").split(" ")[1].split(";")[0]
-        print(bmp_file)
-        try:
-            display_bmp(bmp_path + bmp_file)
-        except Exception as e:
-            print("Error displaying " + bmp_file + ": " + str(e))
-    # time.sleep(1)
