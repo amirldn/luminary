@@ -90,17 +90,25 @@ def convert_cover_art_to_32x32_bmp(filename):
 
 
 # RPI Handling
-def copy_file_to_rpi(filename):
+def copy_bmp_to_rpi(bmp_id):
     # copy to /Volumes/CIRCUITPY/bmp
-    print("Copying " + filename + " to RPI")
-    file = filename + ".bmp"
     rpiBmpDir = "/Volumes/CIRCUITPY/bmp/"
+    file = bmp_id + ".bmp"
+    print("Copying " + file + " to " + rpiBmpDir)
     if not os.path.exists(rpiBmpDir):
         os.makedirs(rpiBmpDir)
-
     localBmpPath = bmp_cover_art_path + file
     rpiBmpPath = rpiBmpDir + file
     os.system("cp " + localBmpPath + " " + rpiBmpPath)
+
+
+def write_bmp_id_to_rpi(bmp_id):
+    print("Writing " + bmp_id + " to nowplaying.txt")
+    rpiDir = "/Volumes/CIRCUITPY/"
+
+    rpiNowPlayingPath = rpiDir + "nowplaying.txt"
+    with open(rpiNowPlayingPath, "w") as f:
+        f.write(bmp_id)
 
 
 print("Starting")
@@ -117,10 +125,9 @@ while True:
             cp.album_id,
         )
         if downloaded:
-            # TODO: add a check to see if the file is already on the RPI
-            copy_file_to_rpi(cp.album_id)
+            copy_bmp_to_rpi(cp.album_id)
+        write_bmp_id_to_rpi(cp.album_id)
         # ser.write("1 {cp.album_id};".format(cp=cp).encode())/
-        # ser.write(b"0")
         time.sleep(1)
         # print("Serial:" + str(ser.read_all()))
     else:
