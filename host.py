@@ -100,14 +100,14 @@ def copy_bmp_to_rpi(bmp_id):
     # copy to /Volumes/CIRCUITPY/bmp
     rpiBmpDir = "/Volumes/CIRCUITPY/bmp/"
     file = bmp_id + ".bmp"
-    print("Copying " + file + " to " + rpiBmpDir)
+    print("Copying cover.bmp to " + rpiBmpDir)
     if not os.path.exists(rpiBmpDir):
         print("Creating directory {}".format(rpiBmpDir))
         os.makedirs(rpiBmpDir)
     localBmpPath = bmp_cover_art_path + file
-    rpiBmpPath = rpiBmpDir + file
+    rpiBmpPath = rpiBmpDir + "cover.bmp"
     os.system("cp " + localBmpPath + " " + rpiBmpPath)
-    print("Copied " + file + " to " + rpiBmpDir)
+    print("Copied cover.bmp to " + rpiBmpDir)
 
 
 def write_bmp_id_to_rpi(bmp_id):
@@ -128,10 +128,18 @@ def delete_non_playing_bmps(bmp_id):
             print("Deleted " + file)
 
 
+def delete_existing_bmp(filename):
+    rpiBmpDir = "/Volumes/CIRCUITPY/bmp/"
+    filepath = rpiBmpDir + filename + ".bmp"
+    if os.path.exists(filepath):
+        os.remove(rpiBmpDir + filename + ".bmp")
+        print("Deleted " + filename + ".bmp")
+
+
 # endregion
 
 # region Main Thread
-print("Starting")
+print("Starting...")
 cp = currentPlaying()
 prev_now_playing_print = ""
 while True:
@@ -141,13 +149,12 @@ while True:
         if now_playing_print != prev_now_playing_print:
             print(now_playing_print)
             prev_now_playing_print = now_playing_print
-        downloaded = download_cover_art_and_convert_to_32x32_bmp(
-            cp.cover_art,
-            cp.album_id,
-        )
-        if downloaded:
+            downloaded = download_cover_art_and_convert_to_32x32_bmp(
+                cp.cover_art, cp.album_id
+            )
+            delete_existing_bmp("cover")
             copy_bmp_to_rpi(cp.album_id)
-            # delete_non_playing_bmps(cp.album_id)
+        # delete_non_playing_bmps(cp.album_id)
         time.sleep(1)
     else:
         print("Nothing Playing")

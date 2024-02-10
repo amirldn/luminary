@@ -24,7 +24,7 @@ matrix = rgbmatrix.RGBMatrix(
 )
 
 # Associate matrix with a Display to use displayio features
-display = framebufferio.FramebufferDisplay(matrix, auto_refresh=False, rotation=0)
+display = framebufferio.FramebufferDisplay(matrix, auto_refresh=True, rotation=0)
 root = displayio.Group()
 display.root_group = root
 
@@ -50,19 +50,24 @@ def display_bmp(bmp_id):
     group = group_with_bmp(filepath)
     display.show(group)
     display.refresh(target_frames_per_second=60)
-    print("Displaying " + filepath)
+    # print("Displaying " + filepath)
 
 
 # Iterate through all bmp files in the bmp_path directory and display them
 print("Starting...")
 while True:
-    print("Fetching files...")
-    bmp_files = [f for f in os.listdir(bmp_path) if f.endswith(".bmp")]
-    print("Found bmps: {}".format(bmp_files))
-    for bmp_file in bmp_files:
-        bmp_id = bmp_file.replace(".bmp", "")
-        try:
-            display_bmp(bmp_id)
-        except Exception as e:
-            print("Error displaying " + bmp_file + ": " + str(e))
+    try:
+        display_bmp("cover")
+    except Exception as e:
+        print("Error displaying: " + str(e))
+
+    # print("Fetching files...")
+    # bmp_files = [f for f in os.listdir(bmp_path) if f.endswith(".bmp")]
+    # print("Found bmps: {}".format(bmp_files))
+    # for bmp_file in bmp_files:
+    #     bmp_id = bmp_file.replace(".bmp", "")
+    #     try:
+    #         display_bmp(bmp_id)
+    #     except Exception as e:
+    #         print("Error displaying " + bmp_file + ": " + str(e))
     # display_bmp("2nkto6YNI4rUYTLqEwWJ3o")
