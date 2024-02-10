@@ -1,15 +1,10 @@
 # SPDX-FileCopyrightText: 2020 Jeff Epler for Adafruit Industries
 # SPDX-License-Identifier: MIT
 
-# IDEA: Have a text file on the board that gets written to with bmp id
-
 import board
 import displayio
 import framebufferio
 import rgbmatrix
-import os
-import usb_cdc
-import time
 
 displayio.release_displays()
 matrix = rgbmatrix.RGBMatrix(
@@ -31,43 +26,23 @@ display.root_group = root
 bmp_path = "/bmp/"
 
 
-# Potentially a memory leak - should release these groups or reuse them
-def group_with_bmp(filepath):
-    bmp = displayio.OnDiskBitmap(filepath)
-    tilegrid = displayio.TileGrid(
-        bmp,
-        pixel_shader=bmp.pixel_shader,
-        tile_width=bmp.width,
-        tile_height=bmp.height,
-    )
+def display_bmp():
+    # Setup the file as the bitmap data source
+    bitmap = displayio.OnDiskBitmap("/bmp/cover.bmp")
+    # Create a TileGrid to hold the bitmap
+    tile_grid = displayio.TileGrid(bitmap, pixel_shader=bitmap.pixel_shader)
+    # Create a Group to hold the TileGrid
     group = displayio.Group()
-    group.append(tilegrid)
-    return group
+    # Add the TileGrid to the Group
+    group.append(tile_grid)
+    # Add the Group to the Display
+    display.root_group = group
+    display.refresh(target_frames_per_second=1)
 
 
-def display_bmp(bmp_id):
-    filepath = bmp_path + bmp_id + ".bmp"
-    group = group_with_bmp(filepath)
-    display.show(group)
-    display.refresh(target_frames_per_second=60)
-    # print("Displaying " + filepath)
-
-
-# Iterate through all bmp files in the bmp_path directory and display them
 print("Starting...")
 while True:
     try:
-        display_bmp("cover")
+        display_bmp()
     except Exception as e:
         print("Error displaying: " + str(e))
-
-    # print("Fetching files...")
-    # bmp_files = [f for f in os.listdir(bmp_path) if f.endswith(".bmp")]
-    # print("Found bmps: {}".format(bmp_files))
-    # for bmp_file in bmp_files:
-    #     bmp_id = bmp_file.replace(".bmp", "")
-    #     try:
-    #         display_bmp(bmp_id)
-    #     except Exception as e:
-    #         print("Error displaying " + bmp_file + ": " + str(e))
-    # display_bmp("2nkto6YNI4rUYTLqEwWJ3o")
