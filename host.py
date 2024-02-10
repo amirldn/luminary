@@ -111,13 +111,12 @@ def copy_bmp_to_rpi(bmp_id):
 
 
 def write_bmp_id_to_rpi(bmp_id):
-    # print("Writing " + bmp_id + " to nowplaying.txt")
+    print("Writing " + bmp_id + " to nowplaying.txt")
     rpiDir = "/Volumes/CIRCUITPY/"
 
     rpiNowPlayingPath = rpiDir + "nowplaying.txt"
-    # subprocess.run(['echo "{}" >> {}'.format(bmp_id, rpiNowPlayingPath)])
-    # with open(rpiNowPlayingPath, "w") as f:
-    #     f.write(bmp_id)
+    with open(rpiNowPlayingPath, "w") as f:
+        f.write(bmp_id)
 
 
 def delete_non_playing_bmps(bmp_id):
