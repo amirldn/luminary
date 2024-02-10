@@ -49,15 +49,16 @@ def display_bmp(bmp_id):
     filepath = bmp_path + bmp_id + ".bmp"
     group = group_with_bmp(filepath)
     display.show(group)
-    display.refresh(target_frames_per_second=1)
+    display.refresh(target_frames_per_second=60)
     print("Displaying " + filepath)
 
 
 # Iterate through all bmp files in the bmp_path directory and display them
+print("Starting...")
 while True:
-    print("grabbing files")
+    print("Fetching files...")
     bmp_files = [f for f in os.listdir(bmp_path) if f.endswith(".bmp")]
-    print(bmp_files)
+    print("Found bmps: {}".format(bmp_files))
     for bmp_file in bmp_files:
         bmp_id = bmp_file.replace(".bmp", "")
         try:
@@ -65,18 +66,3 @@ while True:
         except Exception as e:
             print("Error displaying " + bmp_file + ": " + str(e))
     # display_bmp("2nkto6YNI4rUYTLqEwWJ3o")
-
-# Create an infinte loop which will read the serial port and print the data
-# while True:
-#     data = usb_cdc.data
-#     display_bmp(bmp_path + "2nkto6YNI4rUYTLqEwWJ3o")
-#     print(data)
-#     if data == b"0":
-#         print("Nothing Playing")
-#     else:
-#         bmp_file = data.decode("utf-8").split(" ")[1].split(";")[0]
-#         print(bmp_file)
-#         try:
-#             display_bmp(bmp_path + bmp_file)
-#         except Exception as e:
-#             print("Error displaying " + bmp_file + ": " + str(e))

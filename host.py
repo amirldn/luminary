@@ -1,3 +1,4 @@
+import subprocess
 from PIL import Image
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
@@ -8,9 +9,10 @@ import os
 import serial
 
 
-# Spotify API
+# region Spotify API
 class currentPlaying:
     def __init__(self):
+        self.previous = None
         return None
 
     def __str__(self) -> str:
@@ -23,7 +25,6 @@ class currentPlaying:
         currentPlaying = sp.current_user_playing_track()
         if currentPlaying == None:
             return None
-
         # Song Info
 
         self.title = currentPlaying["item"]["name"]
@@ -36,7 +37,7 @@ class currentPlaying:
 
 
 # Take from creds.json file in same directory
-with open("creds.json") as f:
+with open("./creds.json") as f:
     data = json.load(f)
     client_id = data["client_id"]
     client_secret = data["client_secret"]
@@ -52,8 +53,10 @@ sp = spotipy.Spotify(
     )
 )
 
+# endregion
 
-# Image Handling
+
+# region Image Handling
 cover_art_path = "cover_art/"
 bmp_cover_art_path = "cover_art/bmp/"
 
@@ -67,7 +70,7 @@ def download_cover_art_and_convert_to_32x32_bmp(url, filename):
     if not os.path.exists(cover_art_path + filename + ".jpg"):
         download_cover_art(url, filename)
         convert_cover_art_to_32x32_bmp(filename)
-        print("Downloaded cover art: " + filename)
+        print("Downloaded cover art  " + filename)
         return True
     else:
         # print("File already exists: " + filename)
@@ -89,48 +92,65 @@ def convert_cover_art_to_32x32_bmp(filename):
     img.save(bmp_cover_art_path + filename + ".bmp")
 
 
-# RPI Handling
+# endregion
+
+
+# region RPI Image
 def copy_bmp_to_rpi(bmp_id):
     # copy to /Volumes/CIRCUITPY/bmp
     rpiBmpDir = "/Volumes/CIRCUITPY/bmp/"
     file = bmp_id + ".bmp"
     print("Copying " + file + " to " + rpiBmpDir)
     if not os.path.exists(rpiBmpDir):
+        print("Creating directory {}".format(rpiBmpDir))
         os.makedirs(rpiBmpDir)
     localBmpPath = bmp_cover_art_path + file
     rpiBmpPath = rpiBmpDir + file
     os.system("cp " + localBmpPath + " " + rpiBmpPath)
+    print("Copied " + file + " to " + rpiBmpDir)
 
 
 def write_bmp_id_to_rpi(bmp_id):
-    print("Writing " + bmp_id + " to nowplaying.txt")
+    # print("Writing " + bmp_id + " to nowplaying.txt")
     rpiDir = "/Volumes/CIRCUITPY/"
 
     rpiNowPlayingPath = rpiDir + "nowplaying.txt"
-    with open(rpiNowPlayingPath, "w") as f:
-        f.write(bmp_id)
+    # subprocess.run(['echo "{}" >> {}'.format(bmp_id, rpiNowPlayingPath)])
+    # with open(rpiNowPlayingPath, "w") as f:
+    #     f.write(bmp_id)
 
 
+def delete_non_playing_bmps(bmp_id):
+    rpiBmpDir = "/Volumes/CIRCUITPY/bmp/"
+    bmp_files = [f for f in os.listdir(rpiBmpDir) if f.endswith(".bmp")]
+    for file in bmp_files:
+        if file != bmp_id + ".bmp":
+            os.remove(rpiBmpDir + file)
+            print("Deleted " + file)
+
+
+# endregion
+
+# region Main Thread
 print("Starting")
-# ser = serial.Serial("/dev/tty.usbmodem101", baudrate=9600, timeout=0.5)
-# print("Using", ser.name)
-
 cp = currentPlaying()
+prev_now_playing_print = ""
 while True:
     playing = cp.update()
     if playing != None:
-        print(cp.title + " - " + cp.artist)
+        now_playing_print = cp.title + " - " + cp.artist
+        if now_playing_print != prev_now_playing_print:
+            print(now_playing_print)
+            prev_now_playing_print = now_playing_print
         downloaded = download_cover_art_and_convert_to_32x32_bmp(
             cp.cover_art,
             cp.album_id,
         )
         if downloaded:
             copy_bmp_to_rpi(cp.album_id)
-        write_bmp_id_to_rpi(cp.album_id)
-        # ser.write("1 {cp.album_id};".format(cp=cp).encode())/
+            # delete_non_playing_bmps(cp.album_id)
         time.sleep(1)
-        # print("Serial:" + str(ser.read_all()))
     else:
         print("Nothing Playing")
-        # ser.write(b"0")
         time.sleep(1)
+# endregion
