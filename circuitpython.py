@@ -38,6 +38,7 @@ def display_bmp():
     # Add the Group to the Display
     display.root_group = group
     display.refresh(target_frames_per_second=1)
+    print("displaying")
 
 
 print("Starting...")
